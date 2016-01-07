@@ -16,7 +16,6 @@ $ yamlpal "product[1]/sku" "newkey: newvalue\n" examples/sample1.yml
 
 $ yamlpal "bill-to/address/city" "newkey: value\n" examples/sample1.yml
 
-
 # More options:
 $ yamlpal --help
 Usage: yamlpal [OPTIONS] NEEDLE NEWTEXT FILE
