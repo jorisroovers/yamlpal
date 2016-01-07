@@ -38,7 +38,7 @@ class YamlParser(object):
             line = node.value['__line__']
             node.value = node.value['__val__']
             data = Constructor.construct_object(loader, node, deep)
-            if isinstance(data, str):
+            if not (isinstance(data, dict) or isinstance(data, list)):
                 data = LineStr(data)
                 data.line = line
             return data
