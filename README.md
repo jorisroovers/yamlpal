@@ -29,11 +29,6 @@ Options:
 ```
 
 
-## TODO ##
+## Wishlist ##
 
-- Check that input file is a valid yaml file
-- Tests
-- Code cleanup
-- Read file names from standard input
-- File input using @ syntax
-- Better examples/docs
+We maintain a [wishlist on our wiki](https://github.com/jorisroovers/yamlpal/wiki/Wishlist).
