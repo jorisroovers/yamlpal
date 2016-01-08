@@ -4,22 +4,29 @@ import click
 import re
 
 
-@click.command()
-@click.argument('needle')
-@click.argument('newtext')
-@click.argument('file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+@click.group()
 @click.version_option(version=yamlpal.__version__)
-def cli(needle, newtext, file):
-    """ Simple tool for inserting new entries in yaml files while keeping the original structure and formatting  """
-    newtext = newtext.replace("\\n", "\n").replace("\\t", "\t")
+def cli():
+    """ Modify yaml files while keeping the original structure and formatting.  """
+
+
+@cli.command("insert")
+@click.argument('needle')
+@click.argument('newcontent')
+@click.argument('file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+def insert(needle, newcontent, file):
+    """ Insert new content into a yaml file. """
+    newcontent = newcontent.replace("\\n", "\n").replace("\\t", "\t")
     data = YamlParser.load_yaml(file)
     element = find_element(data, needle)
-    inject_line(element.line, newtext, file)
+    inject_line(element.line, newcontent, file)
 
 
 def find_element(yaml_dict, search_str):
     """ Given a dictionary representing a yaml document and a yaml path string, find the specified element in the
         dictionary."""
+
+    # First split on / to determine which yaml dict we are searching in
     dict_parts = search_str.split("/")
     parsed_parts = []
 

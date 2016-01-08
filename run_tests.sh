@@ -29,10 +29,11 @@ run_pep8_check(){
 }
 
 run_unit_tests(){
+    OMIT="/usr/*"
     if [ -n "$testargs" ]; then
-        coverage run -m pytest "$testargs"
+        coverage run --omit=$OMIT -m pytest "$testargs"
     else
-        coverage run -m pytest yamlpal
+        coverage run --omit=$OMIT -m pytest yamlpal
     fi
     TEST_RESULT=$?
     if [ $include_coverage -eq 1 ]; then
