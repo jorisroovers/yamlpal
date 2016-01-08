@@ -17,9 +17,14 @@ def cli():
 def insert(needle, newcontent, file):
     """ Insert new content into a yaml file. """
     newcontent = newcontent.replace("\\n", "\n").replace("\\t", "\t")
-    data = YamlParser.load_yaml(file)
+
+    fp = open(file)
+    filecontents = fp.read()
+    fp.close()
+
+    data = YamlParser.load_yaml(filecontents)
     element = find_element(data, needle)
-    inject_line(element.line, newcontent, file)
+    insert_line(element.line, newcontent, filecontents)
 
 
 def find_element(yaml_dict, search_str):
@@ -48,6 +53,10 @@ def find_element(yaml_dict, search_str):
     except (KeyError, IndexError):
         click.echo("ERROR: Invalid search string '%s'." % search_str, err=True)
         exit(1)
+
+    # Try accessing the line of the path we are currently on. If we can't access it,
+    # it means that the user has specified a path to a dict or list, without indicating an item within the
+    # dictionary or list.
     try:
         node.line
     except AttributeError:
@@ -56,18 +65,19 @@ def find_element(yaml_dict, search_str):
     return node
 
 
-def inject_line(needle_line, new_content, file):
-    file_contents = open(file).readlines()
+def insert_line(line_nr, new_content, filecontents):
+    lines = filecontents.split("\n")
 
-    # determine the indentation of the line we searched for so that we can use the same indentation
-    indentation_size = len(file_contents[needle_line]) - len(file_contents[needle_line].lstrip())
-    indentation_chars = file_contents[needle_line][0:indentation_size]
+    # determine the size of indentation of the line we searched for so that we can use the same indentation
+    indentation_size = len(lines[line_nr]) - len(lines[line_nr].lstrip())
+    # copy indentation so we use the same whitespace characters (tab, space, mix of tab and space)
+    indentation_chars = lines[line_nr][0:indentation_size]
 
     new_content = indentation_chars + new_content
-    file_contents.insert(needle_line + 1, new_content)
+    lines.insert(line_nr + 1, new_content)
 
-    for line in file_contents:
-        click.echo(line, nl=False)
+    newfile = "\n".join(lines)
+    click.echo(newfile, nl=False)
 
 
 if __name__ == "__main__":

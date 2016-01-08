@@ -11,7 +11,7 @@ class LineStr(str):
 class YamlParser(object):
     """ Yaml parser that attaches line numbers to a dictionary that is parsed by pyYAML.
 
-    This parser monkeypatches some internal PyYAML methods in order to add line numbers to the return dictionary.
+    This parser monkeypatches some internal PyYAML methods in order to add line numbers to the returned dictionary.
 
     In particular:
 
@@ -19,17 +19,17 @@ class YamlParser(object):
            representation at the time tokens are read from the yaml file.
 
         2. When nodes are constructed into python objects, we retrieve the line number from the node representation
-           and store these in a LineStr object. LineStr (see class defined above) are just strings that have
-           and associated line number.
+           and store these in a LineStr object. LineStr objects (see class defined above) are just strings that have
+           an associated line number.
 
 
     Based on http://stackoverflow.com/questions/13319067/parsing-yaml-return-with-line-number
     """
 
     @staticmethod
-    def load_yaml(file):
+    def load_yaml(filecontents):
 
-        loader = yaml.Loader(open(file).read())
+        loader = yaml.Loader(filecontents)
 
         def compose_node(parent, index):
             """ Invoked when a new node (key, value or compound (dict, list) type) is created. """
