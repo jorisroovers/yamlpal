@@ -17,7 +17,7 @@ def cli():
 @click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out", is_flag=True)
 def insert(needle, newcontent, file, inline):
     """ Insert new content into a yaml file. """
-    newcontent = newcontent.replace("\\n", "\n").replace("\\t", "\t")
+    newcontent = newcontent.strip().replace("\\n", "\n").replace("\\t", "\t")
 
     # read yaml file
     fp = open(file)

@@ -14,6 +14,11 @@ class InsertionTests(BaseTestCase):
             self.assertEqual(result.output, "")
             self.assertEqual(actual, self.get_expected("sample1-after-string"))
 
+    def test_insert_ignore_leading_trailing_whitespace(self):
+        result = self.cli.invoke(cli.cli, ["insert", "title", "   newkey: value \t \n",
+                                           self.get_sample_path("sample1")])
+        self.assertEqual(result.output, self.get_expected("sample1-after-string"))
+
     def test_insert_after_date(self):
         result = self.cli.invoke(cli.cli, ["insert", "date", "newkey: value", self.get_sample_path("sample1")])
         self.assertEqual(result.output, self.get_expected("sample1-after-date"))
