@@ -14,17 +14,28 @@ def cli():
 @click.argument('needle')
 @click.argument('newcontent')
 @click.argument('file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
-def insert(needle, newcontent, file):
+@click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out", is_flag=True)
+def insert(needle, newcontent, file, inline):
     """ Insert new content into a yaml file. """
     newcontent = newcontent.replace("\\n", "\n").replace("\\t", "\t")
 
+    # read yaml file
     fp = open(file)
     filecontents = fp.read()
     fp.close()
 
+    # parse yaml, find target line, inject new line
     data = YamlParser.load_yaml(filecontents)
     element = find_element(data, needle)
-    insert_line(element.line, newcontent, filecontents)
+    updated_filecontents = insert_line(element.line, newcontent, filecontents)
+
+    # write new content to file or stdout
+    if inline:
+        fp = open(file, "w")
+        fp.write(updated_filecontents)
+        fp.close()
+    else:
+        click.echo(updated_filecontents, nl=False)
 
 
 def find_element(yaml_dict, search_str):
@@ -77,7 +88,7 @@ def insert_line(line_nr, new_content, filecontents):
     lines.insert(line_nr + 1, new_content)
 
     newfile = "\n".join(lines)
-    click.echo(newfile, nl=False)
+    return newfile
 
 
 if __name__ == "__main__":

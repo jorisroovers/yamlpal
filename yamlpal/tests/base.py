@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 import os
+import time
+import shutil
 
 
 class BaseTestCase(TestCase):
@@ -18,3 +20,26 @@ class BaseTestCase(TestCase):
         expected_path = os.path.join(expected_dir, filename + ".yml")
         expected = open(expected_path).read()
         return expected
+
+    @staticmethod
+    def copy_sample(samplename):
+        return TempSampleCopy(samplename)
+
+
+class TempSampleCopy(object):
+    """ Simple context manager that copies a given sample file and makes it path available in it's context.
+        After exiting the context, the sample file copy is deleted."""
+
+    def __init__(self, samplename):
+        self.sample_path = BaseTestCase.get_sample_path(samplename)
+        filename = os.path.basename(self.sample_path)
+        copy_filename = "copy_%s_%s" % (filename, time.strftime("%Y-%m-%d-%H-%M-%S"))
+        sample_dir = os.path.dirname(self.sample_path)
+        self.copy_path = os.path.join(sample_dir, copy_filename)
+
+    def __enter__(self):
+        shutil.copyfile(self.sample_path, self.copy_path)
+        return self.copy_path
+
+    def __exit__(self, type, value, tb):
+        os.remove(self.copy_path)
