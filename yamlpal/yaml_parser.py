@@ -64,6 +64,12 @@ class YamlParser(object):
             """ Invoked when PyYAML's internal nodes are converted to python types
             (e.g. ScalarNode -> str/int/float, SequenceNode -> list, MappingNode -> dictionary)
             """
+            # in some not fully understood cases we get passed the strings '__line__' and '__val__'
+            # i.e. the extra dict attributes that we created. We're just skipping all nodes that don't
+            # have a 'value' attribute here which fixes the problem.
+            if not hasattr(node, 'value'):
+                return
+
             # retrieve previously stored line number and value, restore node.value to original value
             line = node.value['__line__']
             node.value = node.value['__val__']
