@@ -78,3 +78,8 @@ class InsertionTests(BaseTestCase):
                                            "-f", self.get_sample_path("sample3")],
                                  input=stdin)
         self.assertEqual(result.output, output1 + output3 + output1 + output2)
+
+    def test_insert_content_from_file(self):
+        result = self.cli.invoke(cli.cli, ["insert", "title", "@" + self.get_sample_path("insert-multiline.txt"),
+                                           "-f", self.get_sample_path("sample1")])
+        self.assertEqual(result.output, self.get_expected("sample1-multiline-insert"))

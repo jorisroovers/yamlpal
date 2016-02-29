@@ -1,0 +1,4 @@
+key: value
+list:
+    - value1
+    - value2

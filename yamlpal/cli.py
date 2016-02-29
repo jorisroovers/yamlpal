@@ -29,6 +29,28 @@ def get_files(passed_files):
     return all_files
 
 
+def get_str_content(str_value):
+    """ Returns the string content of a passed yaml content value (for an insert/replace yamlpal operation).
+        If the passed str_value starts with an '@' then we attempt to treat the passed string as a filename and
+        read the contents of the file."""
+    if str_value.startswith("@"):
+        file_path = str_value[1:]
+
+        if not os.path.isfile(file_path):
+            click.echo("ERROR: Invalid file content path '%s'." % file_path, err=True)
+            exit(1)
+
+        with open(file_path, 'r') as f:
+            content = f.read()
+            # strip off newline at the end if it's there: insert/replace takes care of this
+            if content.endswith("\n"):
+                content = content[0:-1]
+    else:
+        # If we directly pass the string, strip whitespace and allow newline and tab chars
+        content = str_value.strip().replace("\\n", "\n").replace("\\t", "\t")
+    return content
+
+
 @cli.command("insert")
 @click.argument('needle')
 @click.argument('newcontent')
@@ -37,7 +59,7 @@ def get_files(passed_files):
 @click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out", is_flag=True)
 def insert(needle, newcontent, file, inline):
     """ Insert new content into a yaml file. """
-    newcontent = newcontent.strip().replace("\\n", "\n").replace("\\t", "\t")
+    newcontent = get_str_content(newcontent)
 
     files = get_files(file)
     for file in files:

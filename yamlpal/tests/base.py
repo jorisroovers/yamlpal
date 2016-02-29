@@ -12,12 +12,18 @@ class BaseTestCase(TestCase):
     @staticmethod
     def get_sample_path(filename=""):
         samples_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "samples")
-        return os.path.join(samples_dir, filename + ".yml")
+        _, ext = os.path.splitext(filename)
+        if ext == '':
+            filename += ".yml"
+        return os.path.join(samples_dir, filename)
 
     @staticmethod
     def get_expected(filename=""):
         expected_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "expected")
-        expected_path = os.path.join(expected_dir, filename + ".yml")
+        _, ext = os.path.splitext(filename)
+        if ext == '':
+            filename += ".yml"
+        expected_path = os.path.join(expected_dir, filename)
         expected = open(expected_path).read()
         return expected
 

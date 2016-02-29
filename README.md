@@ -8,6 +8,8 @@ Basic usage:
 ```bash
 $ yamlpal insert -f examples/sample1.yml "invoice" "newkey: newval"
 
+$ yamlpal insert -f examples/sample1.yml "invoice" @examples/insert-multiline.txt
+
 $ yamlpal insert -f examples/sample1.yml "tax" "newkey: newval"
 
 $ yamlpal insert -f examples/sample1.yml"bill-to/given" "rhel-7-server"
