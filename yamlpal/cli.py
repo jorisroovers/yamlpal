@@ -1,7 +1,9 @@
 import yamlpal
 from yamlpal.yaml_parser import YamlParser
+import sys
 import click
 import re
+import os
 
 
 @click.group()
@@ -10,15 +12,39 @@ def cli():
     """ Modify yaml files while keeping the original structure and formatting.  """
 
 
+def get_files(passed_files):
+    """ Determines which files are part of the list that will be manipulated by yamlpal by combining
+    the files that are passed as commandline arguments with the files that are passed via the stdin.
+    :param passed_files: list of files that is passed via cli flags (-f).
+    :return: list of files that will be manipulated by yamlpal
+    """
+    all_files = []
+    all_files.extend(passed_files)
+    if not sys.stdin.isatty():
+        input_paths = sys.stdin.read().split("\n")
+        for input_path in input_paths:
+            if input_path.strip() != "":
+                all_files.append(os.path.abspath(input_path))
+                # TODO(jroovers): check if valid file paths
+    return all_files
+
+
 @cli.command("insert")
 @click.argument('needle')
 @click.argument('newcontent')
-@click.argument('file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+@click.option('-f', '--file',
+              type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), multiple=True)
 @click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out", is_flag=True)
 def insert(needle, newcontent, file, inline):
     """ Insert new content into a yaml file. """
     newcontent = newcontent.strip().replace("\\n", "\n").replace("\\t", "\t")
 
+    files = get_files(file)
+    for file in files:
+        insert_in_file(needle, newcontent, file, inline)
+
+
+def insert_in_file(needle, newcontent, file, inline):
     # read yaml file
     fp = open(file)
     filecontents = fp.read()

@@ -6,15 +6,18 @@ Simple tool for inserting new entries in yaml files while keeping the original s
 
 Basic usage:
 ```bash
-$ yamlpal insert "invoice" "newkey: newval" examples/sample1.yml
+$ yamlpal insert -f examples/sample1.yml "invoice" "newkey: newval"
 
-$ yamlpal insert "tax" "newkey: newval" examples/sample1.yml
+$ yamlpal insert -f examples/sample1.yml "tax" "newkey: newval"
 
-$ yamlpal insert "bill-to/given" "rhel-7-server" examples/sample1.yml
+$ yamlpal insert -f examples/sample1.yml"bill-to/given" "rhel-7-server"
 
-$ yamlpal insert "product[1]/sku" "newkey: newvalue" examples/sample1.yml
+$ yamlpal insert  -f examples/sample1.yml "product[1]/sku" "newkey: newvalue"
 
-$ yamlpal insert "bill-to/address/city" "newkey: value" examples/sample1.yml
+$ yamlpal insert  -f examples/sample1.yml "bill-to/address/city" "newkey: value"
+
+# Specify files via stdin:
+$ find examples -name \*.yml | yamlpal insert "invoice" "newkey: value"
 
 # More options:
 $ yamlpal --help

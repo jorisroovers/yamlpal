@@ -31,9 +31,10 @@ run_pep8_check(){
 run_unit_tests(){
     OMIT="/usr/*"
     if [ -n "$testargs" ]; then
-        coverage run --omit=$OMIT -m pytest "$testargs"
+        # pytest -s => show std output (i.e print statements)
+        coverage run --omit=$OMIT -m pytest -s "$testargs"
     else
-        coverage run --omit=$OMIT -m pytest yamlpal
+        coverage run --omit=$OMIT -m pytest -s yamlpal
     fi
     TEST_RESULT=$?
     if [ $include_coverage -eq 1 ]; then
