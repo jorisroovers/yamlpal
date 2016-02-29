@@ -1,0 +1,30 @@
+---
+# Example from: http://www.yaml.org/start.html
+invoice: 34843213
+date   : 2016-01-23
+bill-to: &id001
+    given  : John
+    family : Smith
+    address:
+        lines: |
+            458 Walkman Dr.
+            Suite #292
+        city    : Royal Oak
+        state   : MI
+        postal  : 48046
+ship-to: *id001
+product:
+    - sku         : BL394D
+      quantity    : 4
+      description : Football
+      price       : 120.00
+    - sku         : BL4438H
+      quantity    : 1
+      description : Super Hoop
+      price       : 2392.00
+tax  : 251.42
+title: Invoice for purchases
+total: 4443.52
+comments: >
+    Morning preferred.
+    Contact John for details.
