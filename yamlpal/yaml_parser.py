@@ -55,8 +55,9 @@ class YamlParser(object):
                     for list_node in node.value:
                         list_node.value['__line__'] -= 1
 
-            # replace the value of the node with a dictionary that contains both the line number and value
-            node.value = {"__line__": line, "__val__": node.value}
+            if not isinstance(node.value, dict):
+                # replace the value of the node with a dictionary that contains both the line number and value
+                node.value = {"__line__": line, "__val__": node.value}
 
             return node
 
@@ -67,7 +68,7 @@ class YamlParser(object):
             # in some not fully understood cases we get passed the strings '__line__' and '__val__'
             # i.e. the extra dict attributes that we created. We're just skipping all nodes that don't
             # have a 'value' attribute here which fixes the problem.
-            if not hasattr(node, 'value'):
+            if not hasattr(node, 'value') or not isinstance(node.value, dict):
                 return
 
             # retrieve previously stored line number and value, restore node.value to original value

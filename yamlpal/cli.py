@@ -1,5 +1,6 @@
 import yamlpal
 from yamlpal.yaml_parser import YamlParser
+from yamlpal import exceptions
 import sys
 import click
 import re
@@ -74,7 +75,12 @@ def insert_in_file(needle, newcontent, file, inline):
 
     # parse yaml, find target line, inject new line
     data = YamlParser.load_yaml(filecontents)
-    element = find_element(data, needle)
+    try:
+        element = find_element(data, needle)
+    except exceptions.InvalidSearchStringException:
+        click.echo("ERROR: Invalid search string '%s' for file '%s'" % (needle, file), err=True)
+        exit(1)
+
     updated_filecontents = insert_line(element.line, newcontent, filecontents)
 
     # write new content to file or stdout
@@ -110,8 +116,7 @@ def find_element(yaml_dict, search_str):
         for key in parsed_parts:
             node = node[key]
     except (KeyError, IndexError):
-        click.echo("ERROR: Invalid search string '%s'." % search_str, err=True)
-        exit(1)
+        raise exceptions.InvalidSearchStringException(search_str)
 
     # Try accessing the line of the path we are currently on. If we can't access it,
     # it means that the user has specified a path to a dict or list, without indicating an item within the
