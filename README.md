@@ -2,37 +2,41 @@
 [![Build Status](https://travis-ci.org/jorisroovers/yamlpal.svg?branch=master)]
 (https://travis-ci.org/jorisroovers/yamlpal)
 
-Simple tool for inserting new entries in yaml files while keeping the original structure and formatting.
+Simple tool for modifying and searching yaml files while keeping the original file formatting.
+
+Yamlpal uses its own version of 'yamlpath', a syntax similar to xpath, to identify elements in a yaml file.
+
 
 Basic usage:
 ```bash
-$ yamlpal insert -f examples/sample1.yml "invoice" "newkey: newval"
-
+# Inserting new content into files (output is printed to stdout by default)
+$ yamlpal insert  -f examples/sample1.yml "bill-to/address/city" "newkey: value"
 $ yamlpal insert -f examples/sample1.yml "invoice" @examples/insert-multiline.txt
 
-$ yamlpal insert -f examples/sample1.yml "tax" "newkey: newval"
+# Specify files via stdin and modify the files directly inline instead of printing to stdout
+$ find examples -name \*.yml | yamlpal insert --inline "invoice" "newkey: value"
 
-$ yamlpal insert -f examples/sample1.yml"bill-to/given" "rhel-7-server"
+# Finding content in files
+$ yamlpal find  -f examples/sample1.yml "bill-to/address/city"
+city: Royal Oak
 
-$ yamlpal insert  -f examples/sample1.yml "product[1]/sku" "newkey: newvalue"
+# Specify a custom output format (run "yamlpal find --help" for details on format strings)
+$ yamlpal find -f examples/sample1.yml --format "%{linenr} %{key} %{value}" "bill-to/address/city"
+11 city Royal Oak
 
-$ yamlpal insert  -f examples/sample1.yml "bill-to/address/city" "newkey: value"
+# Run yamlpal <command> --help for command specific help.
+$ yamlpal insert --help
+Usage: yamlpal insert [OPTIONS] NEEDLE NEWCONTENT
 
-# Specify files via stdin:
-$ find examples -name \*.yml | yamlpal insert "invoice" "newkey: value"
-
-# More options:
-$ yamlpal --help
-Usage: yamlpal [OPTIONS] COMMAND [ARGS]...
-
-  Modify yaml files while keeping the original structure and formatting.
+  Insert new content into a yaml file.
 
 Options:
-  --version  Show the version and exit.
-  --help     Show this message and exit.
-
-Commands:
-  insert  Insert new content into a yaml file.
+  -f, --file PATH  File to insert new content in. Can by specified multiple
+                   times to modify multiple files. Files are not modified
+                   inline by default. You can also provide (additional) file
+                   paths via stdin.
+  -i, --inline     Edit file inline instead of dumping it to std out.
+  --help           Show this message and exit.
 ```
 
 

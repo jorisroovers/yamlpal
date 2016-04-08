@@ -6,11 +6,30 @@ import click
 import re
 import os
 
+FORMATTING_EPILOG = """
+\b
+Format Strings:
+Format strings determine how yamlpal will output values.
+Available keys:
+   %{key}     :  Key of the match (or index if matching an item in a list)
+   %{value}   :  Value of the match
+   %{linenr}  :  Line number where the match occured
+   %{file}    :  Name of the file in which the match occured
+   %{literal} :  Literal match in the file (original formatting)
+Examples:
+   $ yamlpal find "bill-to/address/city" --format "%{file} %{linenr}: %{value}"
+   /abs/path/to/examples/examples/sample1.yml 11: Royal Oak
 
-@click.group()
+   $ yamlpal find "bill-to/address/city" --format "%{linenr} %{literal}"
+   11:         city    : Royal Oak
+"""
+
+
+@click.group(epilog="Run 'yamlpal <command> --help' for command specific help.")
 @click.version_option(version=yamlpal.__version__)
 def cli():
-    """ Modify yaml files while keeping the original structure and formatting.  """
+    """ Modify and search yaml files while keeping the original formatting.
+    """
 
 
 def get_files(passed_files):
@@ -55,9 +74,11 @@ def get_str_content(str_value):
 @cli.command("insert")
 @click.argument('needle')
 @click.argument('newcontent')
-@click.option('-f', '--file',
-              type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), multiple=True)
-@click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out", is_flag=True)
+@click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              multiple=True, help="File to insert new content in. Can by specified multiple times to modify " +
+                                  "multiple files. Files are not modified inline by default. " +
+                                  "You can also provide (additional) file paths via stdin.")
+@click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out.", is_flag=True)
 def insert(needle, newcontent, file, inline):
     """ Insert new content into a yaml file. """
     newcontent = get_str_content(newcontent)
@@ -65,6 +86,63 @@ def insert(needle, newcontent, file, inline):
     files = get_files(file)
     for file in files:
         insert_in_file(needle, newcontent, file, inline)
+
+
+@cli.command("find", epilog=FORMATTING_EPILOG)
+@click.argument('needle')
+@click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              help="File to find content in.")
+@click.option('-F', '--format', help="Format string in which matched content should be returned. " +
+                                     "See the section 'Format Strings' below for details on format strings. " +
+                                     "(default: \"%{key}: %{value}\")",
+              default="%{key}: %{value}")
+def find(needle, file, format):
+    """ Find a line in a yaml file. """
+    found = find_in_file(needle, file, format)
+    click.echo(found)
+
+
+def find_in_file(needle, file, format):
+    # read yaml file
+    fp = open(file)
+    filecontents = fp.read()
+    fp.close()
+
+    # parse the file
+    data = YamlParser.load_yaml(filecontents)
+    try:
+        element = find_element(data, needle)
+    except exceptions.InvalidSearchStringException:
+        # TODO (jroovers): we should deduplicate this code. Best done by moving the core business logic
+        # (like find_element) out of this module into it's own module and then creating a wrapper function
+        # here that deals with exception handling
+        click.echo("ERROR: Invalid search string '%s' for file '%s'" % (needle, file), err=True)
+        exit(1)
+
+    return apply_format(file, filecontents, element, format)
+
+
+def apply_format(file, filecontents, element, format):
+    """ Given a yaml element and yamlpal format string, return the interpolated string.
+        We currently support the following placeholders:
+         - %{key}     -> key of the yaml element (index if you are accessing a list)
+         - %{value}   -> value of the yaml element
+         - %{literal} -> the string corresponding to the yaml element as it literally occurs in the file
+         - %{linenr}  -> line number on which the yaml element is found
+         - %{file}    -> name of the file in which the yaml element is found
+    """
+
+    result = format.replace("%{key}", str(element.key))
+    result = result.replace("%{value}", str(element))
+    result = result.replace("%{linenr}", str(element.line))
+    result = result.replace("%{file}", file)
+
+    # check whether literal occurs before splitting the file, since it's a more expensive operation
+    if "%{literal}" in format:
+        lines = filecontents.split("\n", element.line + 1)  # don't split more than required
+        result = result.replace("%{literal}", lines[element.line])
+
+    return result
 
 
 def insert_in_file(needle, newcontent, file, inline):
@@ -123,6 +201,7 @@ def find_element(yaml_dict, search_str):
     # dictionary or list.
     try:
         node.line
+        node.key = parsed_parts[-1]  # add the last parsed key as the node's key
     except AttributeError:
         click.echo("ERROR: Path exists but not specific enough (%s)." % search_str, err=True)
         exit(1)

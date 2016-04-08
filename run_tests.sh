@@ -29,7 +29,7 @@ run_pep8_check(){
 }
 
 run_unit_tests(){
-    OMIT="/usr/*"
+    OMIT="/usr/*,*travis*"
     if [ -n "$testargs" ]; then
         # pytest -s => show std output (i.e print statements)
         coverage run --omit=$OMIT -m pytest -s "$testargs"

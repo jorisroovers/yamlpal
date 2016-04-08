@@ -21,6 +21,10 @@ product:
       quantity    : 1
       description : Super Hoop
       price       : 2392.00
+labels:
+  - premium customer
+  - online order
+  - fast delivery
 tax  : 251.42
 title: Invoice for purchases
 newkey: value
