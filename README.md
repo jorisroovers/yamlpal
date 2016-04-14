@@ -1,6 +1,10 @@
 # yamlpal
 [![Build Status](https://travis-ci.org/jorisroovers/yamlpal.svg?branch=master)]
 (https://travis-ci.org/jorisroovers/yamlpal)
+[![PyPi Package](https://img.shields.io/pypi/v/yamlpal.png)]
+(https://pypi.python.org/pypi/yamlpal)
+![Supported Python Versions](https://img.shields.io/pypi/pyversions/yamlpal.svg)
+
 
 Simple tool for modifying and searching yaml files **while keeping the original file formatting**.
 
@@ -9,6 +13,8 @@ Yamlpal uses its own version of 'yamlpath', a syntax similar to xpath, to identi
 
 Basic usage:
 ```bash
+# Installation
+pip install yamlpal
 # Inserting new content into files (output is printed to stdout by default)
 $ yamlpal insert  -f examples/sample1.yml "bill-to/address/city" "newkey: value"
 $ yamlpal insert -f examples/sample1.yml "invoice" @examples/insert-multiline.txt
