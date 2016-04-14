@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/jorisroovers/yamlpal.svg?branch=master)]
 (https://travis-ci.org/jorisroovers/yamlpal)
 
-Simple tool for modifying and searching yaml files while keeping the original file formatting.
+Simple tool for modifying and searching yaml files **while keeping the original file formatting**.
 
 Yamlpal uses its own version of 'yamlpath', a syntax similar to xpath, to identify elements in a yaml file.
 
