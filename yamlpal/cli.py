@@ -132,6 +132,14 @@ def apply_format(file, filecontents, element, format):
          - %{file}    -> name of the file in which the yaml element is found
     """
 
+    # TODO(jroovers): this is a temporary workaround for pretty printing dictionaries and lists
+    # We need to do this because PyYaml doesn't like dumping our custom Objects (LineDict, LineStr, LineList)
+    # Some formatting is better than nothing!
+    if isinstance(element, dict) or isinstance(element, list):
+        import json
+        # print yaml.dump(dict(element), default_flow_style=False)
+        return json.dumps(element, indent=4)
+
     result = format.replace("%{key}", str(element.key))
     result = result.replace("%{value}", str(element))
     result = result.replace("%{linenr}", str(element.line))
@@ -193,6 +201,7 @@ def find_element(yaml_dict, search_str):
     try:
         for key in parsed_parts:
             node = node[key]
+
     except (KeyError, IndexError):
         raise exceptions.InvalidSearchStringException(search_str)
 

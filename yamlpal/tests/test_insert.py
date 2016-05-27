@@ -35,6 +35,18 @@ class InsertionTests(BaseTestCase):
         result = self.cli.invoke(cli.cli, ["insert", "title", "newkey: value", "-f", self.get_sample_path("sample1")])
         self.assertEqual(result.output, self.get_expected("sample1-after-string"))
 
+    def test_into_dictionary(self):
+        result = self.cli.invoke(cli.cli,
+                                 ["insert", "bill-to/address", "newkey: value\n",
+                                  "-f", self.get_sample_path("sample1")])
+        self.assertEqual(result.output, self.get_expected("sample1-into-dictionary"))
+
+    def test_into_list(self):
+        # TODO(jroovers): this create invalid yaml. We need to do smart insertion!
+        result = self.cli.invoke(cli.cli, ["insert", "product", "newkey: value\n",
+                                           "-f", self.get_sample_path("sample1")])
+        self.assertEqual(result.output, self.get_expected("sample1-into-list"))
+
     def test_multiple_file_flags(self):
         # default case: multiple file flags
         result = self.cli.invoke(cli.cli, ["insert", "title", "newkey: value",
