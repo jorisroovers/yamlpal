@@ -41,3 +41,17 @@ class FindTests(BaseTestCase):
                                            "-f", self.get_sample_path("sample1")])
 
         self.assertEqual(result.output, "1: online order\n")
+
+    def test_find_dictionary(self):
+        result = self.cli.invoke(cli.cli, ["find", "bill-to/address", "-f", self.get_sample_path("sample1")])
+        expected = '{\n    "city": "Royal Oak", \n    "state": "MI", \n    "postal": "48046", \n    ' + \
+                   '"lines": "458 Walkman Dr.\\nSuite #292\\n"\n}\n'
+        self.assertEqual(result.output, expected)
+
+    def test_find_list(self):
+        result = self.cli.invoke(cli.cli, ["find", "product", "-f", self.get_sample_path("sample1")])
+        expected = '[\n    {\n        "sku": "BL394D", \n        "price": "450.0", \n        ' + \
+                   '"description": "Basketball", \n        "quantity": "4"\n    }, \n    ' + \
+                   '{\n        "sku": "BL4438H", \n        "price": "2392.0", \n        ' + \
+                   '"description": "Super Hoop", \n        "quantity": "1"\n    }\n]\n'
+        self.assertEqual(result.output, expected)

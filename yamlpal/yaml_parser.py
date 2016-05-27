@@ -8,6 +8,25 @@ class LineStr(str):
     pass
 
 
+class LineList(list):
+    """ List that has an associated line number """
+
+
+class LineDict(dict):
+    """Dictionary that has an associated start and end line number"""
+
+    def __getitem__(self, item):
+        """ Convert normal dictionaries and list to LineDicts and LineLists"""
+        res = super(LineDict, self).__getitem__(item)
+        if isinstance(res, LineDict) or isinstance(res, LineList):
+            return res
+        elif isinstance(res, dict):
+            return LineDict(res)
+        elif isinstance(res, list):
+            return LineList(res)
+        return res
+
+
 class YamlParser(object):
     """ Yaml parser that attaches line numbers to a dictionary that is parsed by pyYAML.
 
@@ -25,6 +44,27 @@ class YamlParser(object):
 
     Based on http://stackoverflow.com/questions/13319067/parsing-yaml-return-with-line-number
     """
+
+    @staticmethod
+    def _augment_data(data):
+        """
+        Recursively iterate through a given dictionary, convert each dictionary along the way to a LineDict and
+        give each LineDict or LineList the line number of its key. This way, every element has a line number associated
+        with it.
+        :return: a dictionary representing a yaml document with line numbers associated to each key or value of the
+        dictionary.
+        """
+        if isinstance(data, dict):
+            data = LineDict(data)
+            for key in data.keys():
+                if data[key]:
+                    res = YamlParser._augment_data(data[key])
+                    # If the result of our recursive call does not have a line attribute, then we know it is not an
+                    # atomic element (i.e. string), so we should assign the element the line number of the key
+                    if not hasattr(res, 'line'):
+                        res.line = key.line
+                    data[key] = res
+        return data
 
     @staticmethod
     def load_yaml(filecontents):
@@ -83,6 +123,7 @@ class YamlParser(object):
             if not (isinstance(data, dict) or isinstance(data, list)):
                 data = LineStr(data)
                 data.line = line
+
             return data
 
         # monkey patch some methods from the PyYAML loader so that we can work our magic while the yaml
@@ -90,4 +131,8 @@ class YamlParser(object):
         loader.compose_node = compose_node
         loader.construct_object = construct_object
 
-        return loader.get_single_data()
+        # Parse yaml
+        data = loader.get_single_data()
+
+        # Augment the resulting dictionary with additional information numbers by analyzing it a second time
+        return YamlParser._augment_data(data)
