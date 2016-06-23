@@ -52,16 +52,24 @@ run_stats(){
     radon raw -s yamlpal | tail -n 6
 }
 
+clean(){
+    set +e
+    find yamlpal -type d  -name "__pycache__" -exec rm -rf {} \; 2> /dev/null
+    set -e
+}
+
 # default behavior
 just_pep8=0
 just_lint=0
 just_stats=0
+just_clean=0
 include_coverage=1
 testargs=""
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
         -h|--help) shift; help;;
+        -c|--clean) shift; just_clean=1;;
         -p|--pep8) shift; just_pep8=1;;
         -l|--lint) shift; just_lint=1;;
         -s|--stats) shift; just_stats=1;;
@@ -77,6 +85,11 @@ fi
 
 if [ $just_stats -eq 1 ]; then
     run_stats
+    exit $?
+fi
+
+if [ $just_clean -eq 1 ]; then
+    clean
     exit $?
 fi
 
