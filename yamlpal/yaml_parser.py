@@ -43,6 +43,10 @@ class YamlParser(object):
 
 
     Based on http://stackoverflow.com/questions/13319067/parsing-yaml-return-with-line-number
+
+    In addition, we do some post processing (see _augment_data()) to extract line numbers of compound datastructures
+    like lists or dictionaries.
+
     """
 
     @staticmethod
@@ -50,20 +54,64 @@ class YamlParser(object):
         """
         Recursively iterate through a given dictionary, convert each dictionary along the way to a LineDict and
         give each LineDict or LineList the line number of its key. This way, every element has a line number associated
-        with it.
+        with it. Along the way, set the end line number of compound elements (list of dicts) to the highest end line
+        number of its descendants.
         :return: a dictionary representing a yaml document with line numbers associated to each key or value of the
         dictionary.
         """
+
+        def assign_compound_line_nrs_from_atomic(compound_element, atomic_element):
+            """
+            Utility method to assign line and endline numbers to compound datastructures (i.e. dict or list), based on
+            an atomic element that is part of that compound datastructure (e.g. a string part of a list).
+             - If the start line number is lower than the current lowest start line number for the compound element,
+               then reassign the start line number for the  compound element to the start line number of the atomic
+               element.
+             - If the end line number is higher than the current highest end line number for the compound element,
+               then reassign the end line number for the compound element to the end line number of the atomic
+               element.
+            """
+            if not hasattr(compound_element, 'line'):
+                compound_element.line = atomic_element.line
+            elif atomic_element.line < data.line:
+                compound_element.line = atomic_element.line
+
+            if not hasattr(data, 'line_end'):
+                compound_element.line_end = -1
+            elif atomic_element.line_end > compound_element.line_end:
+                compound_element.line_end = atomic_element.line_end
+
         if isinstance(data, dict):
             data = LineDict(data)
+            # Go over the entire dictionary and recursively call this method
             for key in data.keys():
                 if data[key]:
                     res = YamlParser._augment_data(data[key])
+
                     # If the result of our recursive call does not have a line attribute, then we know it is not an
                     # atomic element (i.e. string), so we should assign the element the line number of the key
                     if not hasattr(res, 'line'):
                         res.line = key.line
+                        if hasattr(key, 'line_end'):
+                            res.line_end = key.line_end
+
+                    assign_compound_line_nrs_from_atomic(data, res)
+
                     data[key] = res
+
+        elif isinstance(data, list):
+            # Go over the entire list and recursively call this method
+            for index, item in enumerate(data):
+                res = YamlParser._augment_data(item)
+
+                assign_compound_line_nrs_from_atomic(data, res)
+
+                data[index] = res
+
+        # else: we're dealing with a string. Line end is just determined by the number of newlines in the string.
+        else:
+            data.line_end = data.line + data.count('\n')
+
         return data
 
     @staticmethod
@@ -135,4 +183,4 @@ class YamlParser(object):
         data = loader.get_single_data()
 
         # Augment the resulting dictionary with additional information numbers by analyzing it a second time
-        return YamlParser._augment_data(data)
+        return YamlParser._augment_data(LineDict(data))

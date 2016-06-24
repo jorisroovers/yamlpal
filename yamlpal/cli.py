@@ -131,18 +131,20 @@ def apply_format(file, filecontents, element, format):
          - %{linenr}  -> line number on which the yaml element is found
          - %{file}    -> name of the file in which the yaml element is found
     """
-
     # TODO(jroovers): this is a temporary workaround for pretty printing dictionaries and lists
     # We need to do this because PyYaml doesn't like dumping our custom Objects (LineDict, LineStr, LineList)
     # Some formatting is better than nothing!
     if isinstance(element, dict) or isinstance(element, list):
         import json
         # print yaml.dump(dict(element), default_flow_style=False)
-        return json.dumps(element, indent=4)
+        value = json.dumps(element, indent=4)
+    else:
+        value = str(element)
 
     result = format.replace("%{key}", str(element.key))
-    result = result.replace("%{value}", str(element))
+    result = result.replace("%{value}", value)
     result = result.replace("%{linenr}", str(element.line))
+    result = result.replace("%{linenr.end}", str(element.line_end))
     result = result.replace("%{file}", file)
 
     # check whether literal occurs before splitting the file, since it's a more expensive operation
@@ -167,7 +169,7 @@ def insert_in_file(needle, newcontent, file, inline):
         click.echo("ERROR: Invalid search string '%s' for file '%s'" % (needle, file), err=True)
         exit(1)
 
-    updated_filecontents = insert_line(element.line, newcontent, filecontents)
+    updated_filecontents = insert_line(element.line_end, newcontent, filecontents)
 
     # write new content to file or stdout
     if inline:
