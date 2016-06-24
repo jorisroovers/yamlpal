@@ -14,7 +14,6 @@ bill-to: &id001
         postal  : 48046
 ship-to: *id001
 product:
-newkey: value
     - sku         : BL394D
       quantity    : 4
       description : Basketball
@@ -23,6 +22,7 @@ newkey: value
       quantity    : 1
       description : Super Hoop
       price       : 2392.00
+      newkey: value
 labels:
   - premium customer
   - online order
