@@ -4,12 +4,22 @@ from yaml.constructor import Constructor
 
 
 class LineStr(str):
-    """ String that has an associated line number """
+    """ String that has associated line numbers """
+    pass
+
+
+class LineInt(int):
+    """ Int that has associated line numbers """
+    pass
+
+
+class LineFloat(float):
+    """ Float that has associated line numbers """
     pass
 
 
 class LineList(list):
-    """ List that has an associated line number """
+    """ List that has associated line numbers """
 
 
 class LineDict(dict):
@@ -108,9 +118,12 @@ class YamlParser(object):
 
                 data[index] = res
 
-        # else: we're dealing with a string. Line end is just determined by the number of newlines in the string.
-        else:
+        elif isinstance(data, str):
+            # We're dealing with a string. Line end is just determined by the number of newlines in the string.
             data.line_end = data.line + data.count('\n')
+        else:
+            # All other scalar types
+            data.line_end = data.line
 
         return data
 
@@ -169,7 +182,18 @@ class YamlParser(object):
             # if the original construct_object method creating anything else then a list or dict (i.e. a str, int, float
             # datetime, etc), just wrap it in a LineStr object.
             if not (isinstance(data, dict) or isinstance(data, list)):
-                data = LineStr(data)
+                if node.tag == "tag:yaml.org,2002:int":
+                    data = LineInt(data)
+                elif node.tag == "tag:yaml.org,2002:float":
+                    data = LineFloat(data)
+                else:
+                    data = LineStr(data)
+                # TODO(jroovers): node.start_mark.line and node.end_mark.line provide a lot of what we need. We can
+                # definitely simplify this a lot. Stupid me for now finding this earlier. It doesn't provide exactly
+                # what we need, especially when references are used (node.start_mark and node.end_mark then include
+                # everything that is referenced as well). We should look into this
+                # data.line = node.start_mark.line
+                # data.line_end = node.end_mark.line
                 data.line = line
                 # If the scalar node has a style, then keep that information around later
                 if hasattr(node, 'style'):
