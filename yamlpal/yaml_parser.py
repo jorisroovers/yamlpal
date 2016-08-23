@@ -171,6 +171,9 @@ class YamlParser(object):
             if not (isinstance(data, dict) or isinstance(data, list)):
                 data = LineStr(data)
                 data.line = line
+                # If the scalar node has a style, then keep that information around later
+                if hasattr(node, 'style'):
+                    data.style = node.style
 
             return data
 

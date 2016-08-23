@@ -22,9 +22,9 @@ class FindTests(BaseTestCase):
     def test_find_custom_format(self):
         sample_path = self.get_sample_path("sample1")
         result = self.cli.invoke(cli.cli, ["find", "bill-to/address/city",
-                                           "-F", "%{file} %{linenr} %{linenr.end} %{key} %{value}",
+                                           "-F", "%{file} %{linenr} %{linenr.end}\t %{key} \n %{value}\n",
                                            "-f", sample_path])
-        self.assertEqual(result.output, "%s 11 11 city Royal Oak\n" % sample_path)
+        self.assertEqual(result.output, "%s 11 11\t city \n Royal Oak\n" % sample_path)
 
     def test_find_custom_format_literal(self):
         result = self.cli.invoke(cli.cli, ["find", "bill-to/address/city",
@@ -44,16 +44,13 @@ class FindTests(BaseTestCase):
 
     def test_find_dictionary(self):
         result = self.cli.invoke(cli.cli, ["find", "bill-to/address", "-f", self.get_sample_path("sample1")])
-        expected = 'address: {\n    "city": "Royal Oak", \n    "state": "MI", \n    "postal": "48046", \n    ' + \
-                   '"lines": "458 Walkman Dr.\\nSuite #292\\n"\n}\n'
+        expected = "city: Royal Oak\nlines: |\n  458 Walkman Dr.\n  Suite #292\npostal: '48046'\nstate: MI\n"
         self.assertEqual(result.output, expected)
 
     def test_find_list(self):
         result = self.cli.invoke(cli.cli, ["find", "product", "-f", self.get_sample_path("sample1")])
-        expected = 'product: [\n    {\n        "sku": "BL394D", \n        "price": "450.0", \n        ' + \
-                   '"description": "Basketball", \n        "quantity": "4"\n    }, \n    ' + \
-                   '{\n        "sku": "BL4438H", \n        "price": "2392.0", \n        ' + \
-                   '"description": "Super Hoop", \n        "quantity": "1"\n    }\n]\n'
+        expected = "- description: Basketball\n  price: '450.0'\n  quantity: '4'\n  sku: BL394D\n" + \
+                   "- description: Super Hoop\n  price: '2392.0'\n  quantity: '1'\n  sku: BL4438H\n"
         self.assertEqual(result.output, expected)
 
     def test_find_linenumbers(self):
@@ -84,7 +81,7 @@ class FindTests(BaseTestCase):
         }
         for query, expected in query_result_mapping.iteritems():
             # Test line numbers
-            result = self.cli.invoke(cli.cli, ["find", query, "-F", "%{linenr}-%{linenr.end}",
+            result = self.cli.invoke(cli.cli, ["find", query, "-F", "%{linenr}-%{linenr.end}\n",
                                                "-f", self.get_sample_path("sample1")])
 
             self.assertEqual(result.output, expected, "%s: %s!=%s" % (query, result.output, expected))
