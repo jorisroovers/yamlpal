@@ -177,7 +177,7 @@ def find_element(yaml_dict, search_str):
         for key in parsed_parts:
             node = node[key]
 
-    except (KeyError, IndexError):
+    except (KeyError, IndexError, TypeError):
         raise exceptions.InvalidSearchStringException(search_str)
 
     # Try accessing the line of the path we are currently on. If we can't access it,
