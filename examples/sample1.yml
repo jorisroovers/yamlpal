@@ -27,6 +27,7 @@ labels:
   - online order
   - fast delivery
 tax  : 251.42
+title: Invoice for purchases
 total: 4443.52
 comments: >
     Late afternoon is best.

@@ -1,6 +1,7 @@
 import yaml
 from yaml.composer import Composer
 from yaml.constructor import Constructor
+from yaml.events import AliasEvent
 
 
 class LineStr(str):
@@ -83,11 +84,11 @@ class YamlParser(object):
             """
             if not hasattr(compound_element, 'line'):
                 compound_element.line = atomic_element.line
-            elif atomic_element.line < data.line:
+            elif atomic_element.line < compound_element.line:
                 compound_element.line = atomic_element.line
 
-            if not hasattr(data, 'line_end'):
-                compound_element.line_end = -1
+            if not hasattr(compound_element, 'line_end'):
+                compound_element.line_end = atomic_element.line_end
             elif atomic_element.line_end > compound_element.line_end:
                 compound_element.line_end = atomic_element.line_end
 
@@ -97,7 +98,6 @@ class YamlParser(object):
             for key in data.keys():
                 if data[key]:
                     res = YamlParser._augment_data(data[key])
-
                     # If the result of our recursive call does not have a line attribute, then we know it is not an
                     # atomic element (i.e. string), so we should assign the element the line number of the key
                     if not hasattr(res, 'line'):
@@ -113,14 +113,17 @@ class YamlParser(object):
             # Go over the entire list and recursively call this method
             for index, item in enumerate(data):
                 res = YamlParser._augment_data(item)
-
                 assign_compound_line_nrs_from_atomic(data, res)
-
                 data[index] = res
 
         elif isinstance(data, str):
             # We're dealing with a string. Line end is just determined by the number of newlines in the string.
-            data.line_end = data.line + data.count('\n')
+            if hasattr(data, 'style') and data.style == '>':
+                # If we're parsing a comment line, don't count the newlines, just trust PyYAML on the endline
+                pass
+            else:
+                # else: count the actual newlines to determine the line-end (PyYAML counts too much)
+                data.line_end = data.line + data.count('\n')
         else:
             # All other scalar types
             data.line_end = data.line
@@ -135,6 +138,14 @@ class YamlParser(object):
         def compose_node(parent, index):
             """ Invoked when a new node (key, value or compound (dict, list) type) is created. """
             line = loader.line  # the line number where the previous token has ended (plus empty lines)
+
+            # If we get an alias, just return the alias event, we then know how to handle it in construct_object.
+            # This allows us to not follow aliases which is handy in many cases.
+            # https://github.com/yaml/pyyaml/blob/a7daab723352e68a209479b781b2f03c47e5179a/lib/yaml/composer.py#L64
+            if loader.check_event(AliasEvent):
+                event = loader.get_event()
+                event.line = line  # Do make sure we associate a line number with the alias
+                return event
 
             # call the original compose_node
             node = Composer.compose_node(loader, parent, index)
@@ -166,11 +177,13 @@ class YamlParser(object):
             """ Invoked when PyYAML's internal nodes are converted to python types
             (e.g. ScalarNode -> str/int/float, SequenceNode -> list, MappingNode -> dictionary)
             """
-            # in some not fully understood cases we get passed the strings '__line__' and '__val__'
-            # i.e. the extra dict attributes that we created. We're just skipping all nodes that don't
-            # have a 'value' attribute here which fixes the problem.
-            if not hasattr(node, 'value') or not isinstance(node.value, dict):
-                return
+
+            # In case we are dealing with an Alias, just convert it to a string (prepend the * again because PyYaml
+            # strips it). Also add a line number.
+            if isinstance(node, AliasEvent):
+                data = LineStr("*" + node.anchor)
+                data.line = node.line
+                return data
 
             # retrieve previously stored line number and value, restore node.value to original value
             line = node.value['__line__']
@@ -188,13 +201,18 @@ class YamlParser(object):
                     data = LineFloat(data)
                 else:
                     data = LineStr(data)
+
                 # TODO(jroovers): node.start_mark.line and node.end_mark.line provide a lot of what we need. We can
                 # definitely simplify this a lot. Stupid me for now finding this earlier. It doesn't provide exactly
-                # what we need, especially when references are used (node.start_mark and node.end_mark then include
-                # everything that is referenced as well). We should look into this
+                # what we need, especially when anchors are used (node.start_mark and node.end_mark then include
+                # everything that is referenced as well). We should look into this (I've already spend 2 hrs on this
+                # and wasn't able to fully figure it out)
                 # data.line = node.start_mark.line
                 # data.line_end = node.end_mark.line
+
                 data.line = line
+                data.line_end = node.end_mark.line
+
                 # If the scalar node has a style, then keep that information around later
                 if hasattr(node, 'style'):
                     data.style = node.style

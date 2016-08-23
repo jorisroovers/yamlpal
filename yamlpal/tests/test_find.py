@@ -53,6 +53,21 @@ class FindTests(BaseTestCase):
                    "- description: Super Hoop\n  price: 2392.0\n  quantity: 1\n  sku: BL4438H\n"
         self.assertEqual(result.output, expected)
 
+    def test_find_alias(self):
+        result = self.cli.invoke(cli.cli, ["find", "ship-to", "-f", self.get_sample_path("sample1")])
+        self.assertEqual(result.output, "ship-to: *id001\n")
+
+    def test_find_comment(self):
+        result = self.cli.invoke(cli.cli, ["find", "comments", "-f", self.get_sample_path("sample1")])
+        expected = "comments: Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.\n"
+        self.assertEqual(result.output, expected)
+
+        # Literal match (= includes > sign)
+        result = self.cli.invoke(cli.cli, ["find", "comments", "-F", "%{literal}",
+                                           "-f", self.get_sample_path("sample1")])
+        expected = "comments: >\n    Late afternoon is best.\n    Backup contact is Nancy\n    Billsmer @ 338-4338.\n"
+        self.assertEqual(result.output, expected)
+
     def test_find_linenumbers(self):
         query_result_mapping = {
             'invoice': "2-2\n",
@@ -65,7 +80,7 @@ class FindTests(BaseTestCase):
             'bill-to/address/city': "11-11\n",
             'bill-to/address/state': "12-12\n",
             'bill-to/address/postal': "13-13\n",
-            # 'ship-to': "14-14\n", # TODO(jroovers): searching for references is not yet supported by yamlpal
+            'ship-to': "14-14\n",
             'product': "16-23\n",
             'product[0]': "16-19\n",
             'product[1]': "20-23\n",
@@ -77,7 +92,7 @@ class FindTests(BaseTestCase):
             'tax': "28-28\n",
             'title': "29-29\n",
             'total': "30-30\n",
-            # 'comments': "30-33\n", # TODO(jroovers): we don't correctly parse text that starts with > yet
+            'comments': "31-34\n",  # TODO(jroovers): we don't correctly parse text that starts with > yet
         }
         for query, expected in query_result_mapping.iteritems():
             # Test line numbers
