@@ -1,6 +1,6 @@
 import yamlpal
 from yamlpal.yaml_parser import YamlParser
-from yamlpal import exceptions
+from yamlpal import exceptions, dumper
 import sys
 import click
 import re
@@ -16,6 +16,12 @@ Available keys:
    %{linenr}  :  Line number where the match occured
    %{file}    :  Name of the file in which the match occured
    %{literal} :  Literal match in the file (original formatting)
+   \\n         :  New line
+   \\t         :  Tab
+Default Format:
+   Yamlpal is smart about the format it uses by default
+   "%{key}: %{value}\\n" for atomic types (like string, int, float)
+   "%{value}\\n" for compound types like lists and maps
 Examples:
    $ yamlpal find "bill-to/address/city" --format "%{file} %{linenr}: %{value}"
    /abs/path/to/examples/examples/sample1.yml 11: Royal Oak
@@ -94,12 +100,12 @@ def insert(needle, newcontent, file, inline):
               help="File to find content in.")
 @click.option('-F', '--format', help="Format string in which matched content should be returned. " +
                                      "See the section 'Format Strings' below for details on format strings. " +
-                                     "(default: \"%{key}: %{value}\")",
-              default="%{key}: %{value}")
+                                     "(default format depends on what is printed)",
+              default=dumper.AUTODETERMINE_FORMAT)
 def find(needle, file, format):
     """ Find a line in a yaml file. """
     found = find_in_file(needle, file, format)
-    click.echo(found)
+    click.echo(found, nl=False)
 
 
 def find_in_file(needle, file, format):
@@ -119,40 +125,7 @@ def find_in_file(needle, file, format):
         click.echo("ERROR: Invalid search string '%s' for file '%s'" % (needle, file), err=True)
         exit(1)
 
-    return apply_format(file, filecontents, element, format)
-
-
-def apply_format(file, filecontents, element, format):
-    """ Given a yaml element and yamlpal format string, return the interpolated string.
-        We currently support the following placeholders:
-         - %{key}     -> key of the yaml element (index if you are accessing a list)
-         - %{value}   -> value of the yaml element
-         - %{literal} -> the string corresponding to the yaml element as it literally occurs in the file
-         - %{linenr}  -> line number on which the yaml element is found
-         - %{file}    -> name of the file in which the yaml element is found
-    """
-    # TODO(jroovers): this is a temporary workaround for pretty printing dictionaries and lists
-    # We need to do this because PyYaml doesn't like dumping our custom Objects (LineDict, LineStr, LineList)
-    # Some formatting is better than nothing!
-    if isinstance(element, dict) or isinstance(element, list):
-        import json
-        # print yaml.dump(dict(element), default_flow_style=False)
-        value = json.dumps(element, indent=4)
-    else:
-        value = str(element)
-
-    result = format.replace("%{key}", str(element.key))
-    result = result.replace("%{value}", value)
-    result = result.replace("%{linenr}", str(element.line))
-    result = result.replace("%{linenr.end}", str(element.line_end))
-    result = result.replace("%{file}", file)
-
-    # check whether literal occurs before splitting the file, since it's a more expensive operation
-    if "%{literal}" in format:
-        lines = filecontents.split("\n", element.line + 1)  # don't split more than required
-        result = result.replace("%{literal}", lines[element.line])
-
-    return result
+    return dumper.dump(file, filecontents, element, format)
 
 
 def insert_in_file(needle, newcontent, file, inline):
