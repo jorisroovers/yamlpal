@@ -1,5 +1,5 @@
 import yaml
-from yamlpal.yaml_parser import LineStr, LineDict, LineList
+from yamlpal.yaml_parser import LineStr, LineInt, LineFloat, LineDict, LineList
 
 AUTODETERMINE_FORMAT = "__autodetermine_format__"
 
@@ -19,12 +19,20 @@ def _install_customer_representers():
             node.style = data.style
         return node
 
+    def lineint_representer(dumper, data):
+        return dumper.represent_int(data)
+
+    def linefloat_representer(dumper, data):
+        return dumper.represent_float(data)
+
     def linedict_representer(dumper, data):
         return dumper.represent_dict(data)
 
     def linelist_representer(dumper, data):
         return dumper.represent_list(data)
 
+    yaml.add_representer(LineInt, lineint_representer)
+    yaml.add_representer(LineFloat, linefloat_representer)
     yaml.add_representer(LineStr, linestr_representer)
     yaml.add_representer(LineDict, linedict_representer)
     yaml.add_representer(LineList, linelist_representer)

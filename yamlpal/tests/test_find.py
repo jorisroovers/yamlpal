@@ -44,13 +44,13 @@ class FindTests(BaseTestCase):
 
     def test_find_dictionary(self):
         result = self.cli.invoke(cli.cli, ["find", "bill-to/address", "-f", self.get_sample_path("sample1")])
-        expected = "city: Royal Oak\nlines: |\n  458 Walkman Dr.\n  Suite #292\npostal: '48046'\nstate: MI\n"
+        expected = "city: Royal Oak\nlines: |\n  458 Walkman Dr.\n  Suite #292\npostal: 48046\nstate: MI\n"
         self.assertEqual(result.output, expected)
 
     def test_find_list(self):
         result = self.cli.invoke(cli.cli, ["find", "product", "-f", self.get_sample_path("sample1")])
-        expected = "- description: Basketball\n  price: '450.0'\n  quantity: '4'\n  sku: BL394D\n" + \
-                   "- description: Super Hoop\n  price: '2392.0'\n  quantity: '1'\n  sku: BL4438H\n"
+        expected = "- description: Basketball\n  price: 450.0\n  quantity: 4\n  sku: BL394D\n" + \
+                   "- description: Super Hoop\n  price: 2392.0\n  quantity: 1\n  sku: BL4438H\n"
         self.assertEqual(result.output, expected)
 
     def test_find_linenumbers(self):
