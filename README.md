@@ -30,6 +30,9 @@ city: Royal Oak
 $ yamlpal find -f examples/sample1.yml --format "%{linenr} %{key} %{value}" "bill-to/address/city"
 11 city Royal Oak
 
+# Check that value matches a given regex
+$ yamlpal check "bill-to/address/city" "Royal Oak" -f examples/sample1.yml
+
 # Run yamlpal <command> --help for command specific help.
 $ yamlpal insert --help
 Usage: yamlpal insert [OPTIONS] NEEDLE NEWCONTENT

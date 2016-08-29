@@ -78,34 +78,34 @@ def get_str_content(str_value):
 
 
 @cli.command("insert")
-@click.argument('needle')
+@click.argument('yamlpath')
 @click.argument('newcontent')
 @click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
               multiple=True, help="File to insert new content in. Can by specified multiple times to modify " +
                                   "multiple files. Files are not modified inline by default. " +
                                   "You can also provide (additional) file paths via stdin.")
 @click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out.", is_flag=True)
-def insert(needle, newcontent, file, inline):
+def insert(yamlpath, newcontent, file, inline):
     """ Insert new content into a yaml file. """
     newcontent = get_str_content(newcontent)
 
     files = get_files(file)
     for file in files:
-        insert_in_file(needle, newcontent, file, inline)
+        insert_in_file(yamlpath, newcontent, file, inline)
 
 
 @cli.command("find", epilog=FORMATTING_EPILOG)
-@click.argument('needle')
+@click.argument('yamlpath')
 @click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
               help="File to find content in.")
 @click.option('-F', '--format', help="Format string in which matched content should be returned. " +
                                      "See the section 'Format Strings' below for details on format strings. " +
                                      "(default format depends on what is printed)",
               default=dumper.AUTODETERMINE_FORMAT)
-def find(needle, file, format):
-    """ Find a line in a yaml file. """
-    found = find_in_file(needle, file, format)
-    click.echo(found, nl=False)
+def find(yamlpath, file, format):
+    """ Find content in a yaml file. """
+    result = find_in_file(yamlpath, file, format)
+    click.echo(result, nl=False)
 
 
 def find_in_file(needle, file, format):
@@ -126,6 +126,22 @@ def find_in_file(needle, file, format):
         exit(1)
 
     return dumper.dump(file, filecontents, element, format)
+
+
+@cli.command("check")
+@click.argument('yamlpath')
+@click.argument('check')
+@click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              help="File to check content from.")
+@click.pass_context
+def check(ctx, yamlpath, check, file):
+    """ Check content of a yaml file """
+    result = find_in_file(yamlpath, file, "%{value}")
+    pattern = re.compile(check)
+    if not re.match(pattern, result):
+        msg = "Found value '{}' for yamlpath '{}' does not match expected value '{}'.".format(result, yamlpath, check)
+        click.echo(msg, err=True)
+        ctx.exit(1)
 
 
 def insert_in_file(needle, newcontent, file, inline):
