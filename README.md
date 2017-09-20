@@ -1,8 +1,6 @@
 # yamlpal
-[![Build Status](https://travis-ci.org/jorisroovers/yamlpal.svg?branch=master)]
-(https://travis-ci.org/jorisroovers/yamlpal)
-[![PyPi Package](https://img.shields.io/pypi/v/yamlpal.png)]
-(https://pypi.python.org/pypi/yamlpal)
+[![Build Status](https://travis-ci.org/jorisroovers/yamlpal.svg?branch=master)](https://travis-ci.org/jorisroovers/yamlpal)
+[![PyPi Package](https://img.shields.io/pypi/v/yamlpal.png)](https://pypi.python.org/pypi/yamlpal)
 ![Supported Python Versions](https://img.shields.io/pypi/pyversions/yamlpal.svg)
 
 
