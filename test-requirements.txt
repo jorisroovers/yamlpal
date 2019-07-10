@@ -3,4 +3,4 @@ coverage==4.5.3
 python-coveralls==2.9.2
 radon==1.2.1
 mock==3.0.5
-pytest==5.0.1
+pytest==4.6.4
