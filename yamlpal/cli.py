@@ -81,8 +81,8 @@ def get_str_content(str_value):
 @click.argument('yamlpath')
 @click.argument('newcontent')
 @click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
-              multiple=True, help="File to insert new content in. Can by specified multiple times to modify " +
-                                  "multiple files. Files are not modified inline by default. " +
+              multiple=True, help="File to insert new content in. Can by specified multiple times to modify "
+                                  "multiple files. Files are not modified inline by default. "
                                   "You can also provide (additional) file paths via stdin.")
 @click.option('-i', '--inline', help="Edit file inline instead of dumping it to std out.", is_flag=True)
 def insert(yamlpath, newcontent, file, inline):
@@ -98,8 +98,8 @@ def insert(yamlpath, newcontent, file, inline):
 @click.argument('yamlpath')
 @click.option('-f', '--file', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
               help="File to find content in.")
-@click.option('-F', '--format', help="Format string in which matched content should be returned. " +
-                                     "See the section 'Format Strings' below for details on format strings. " +
+@click.option('-F', '--format', help="Format string in which matched content should be returned. "
+                                     "See the section 'Format Strings' below for details on format strings. "
                                      "(default format depends on what is printed)",
               default=dumper.AUTODETERMINE_FORMAT)
 def find(yamlpath, file, format):
@@ -178,7 +178,7 @@ def find_element(yaml_dict, search_str):
     parsed_parts = []
 
     for dict_part in dict_parts:
-        matches = re.match("(.*)(\[([0-9]+)\])", dict_part)
+        matches = re.match(r"(.*)(\[([0-9]+)\])", dict_part)
         if matches:
             list_name = matches.groups()[0]
             list_index = int(matches.groups()[2])
