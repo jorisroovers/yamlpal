@@ -94,7 +94,7 @@ class FindTests(BaseTestCase):
             'total': "30-30\n",
             'comments': "31-34\n",  # TODO(jroovers): we don't correctly parse text that starts with > yet
         }
-        for query, expected in query_result_mapping.iteritems():
+        for query, expected in query_result_mapping.items():
             # Test line numbers
             result = self.cli.invoke(cli.cli, ["find", query, "-F", "%{linenr}-%{linenr.end}\n",
                                                "-f", self.get_sample_path("sample1")])

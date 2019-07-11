@@ -1,4 +1,4 @@
 setuptools
 wheel==0.24.0
 Click==6.2
-PyYAML==3.11
+PyYAML==3.13
