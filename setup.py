@@ -41,7 +41,7 @@ setup(
     ],
     install_requires=[
         'Click==6.2',
-        'PyYAML==3.13'
+        'PyYAML==5.4'
     ],
     keywords='yamlpal yaml',
     author='Joris Roovers',
